@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { NoteNode, NoteNodeData } from "./NoteNode";
+import { NoteNode, NoteNodeData, Stroke } from "./NoteNode";
 import { ConnectionLine, Connection } from "./ConnectionLine";
 import { NoteEditor } from "./NoteEditor";
 import { LuPlus } from "react-icons/lu";
@@ -277,10 +277,11 @@ export function InfiniteCanvas({
     id: string,
     title: string,
     content: string,
+    strokes: Stroke[]
   ) => {
     onNodesChange(
       nodes.map((node) =>
-        node.id === id ? { ...node, title, content } : node,
+        node.id === id ? { ...node, title, content, strokes } : node,
       ),
     );
   };

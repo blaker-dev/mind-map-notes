@@ -1,4 +1,6 @@
-@import 'tailwindcss' source(none);
-@source '../**/*.{js,ts,jsx,tsx}';
+/* Move imports to the VERY top */
+@import 'tailwindcss'; /* Assuming you are using Tailwind v4 */
+@import 'tw-animate-css'; 
 
-@import 'tw-animate-css';
+/* Then define your sources */
+@source '../**/*.{js,ts,jsx,tsx}';

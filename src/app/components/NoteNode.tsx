@@ -2,6 +2,13 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'motion/react';
 import { LuFileText, LuTrash2 } from 'react-icons/lu';
 
+export interface Stroke {
+  id: string;
+  points: { x: number; y: number }[];
+  color: string;
+  width: number;
+}
+
 export interface NoteNodeData {
   id: string;
   title: string;
@@ -9,6 +16,7 @@ export interface NoteNodeData {
   x: number;
   y: number;
   color?: string;
+  strokes?: Stroke[];
 }
 
 interface NoteNodeProps {

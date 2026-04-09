@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { LuX, LuSave } from 'react-icons/lu'; // Updated import
+import { LuX, LuSave } from 'react-icons/lu';
 import { Button } from './ui/button';
 import { NoteNodeData } from './NoteNode';
 
@@ -13,7 +13,7 @@ interface NoteEditorProps {
 export function NoteEditor({ node, onClose, onSave }: NoteEditorProps) {
   const [title, setTitle] = useState(node.title);
   const [content, setContent] = useState(node.content);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null); // useRef in order to call '.focus()' directly
 
   useEffect(() => {
     // Focus on textarea when opened
@@ -61,7 +61,7 @@ export function NoteEditor({ node, onClose, onSave }: NoteEditorProps) {
             className="flex items-center justify-between p-6 border-b"
             style={{ borderColor: `${glowColor}30` }}
           >
-            <input
+            <input // Title Text
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -72,7 +72,7 @@ export function NoteEditor({ node, onClose, onSave }: NoteEditorProps) {
                 textShadow: `0 0 20px ${glowColor}40`,
               }}
             />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2"> { /* Save Button */}
               <Button
                 onClick={handleSave}
                 size="sm"
@@ -82,10 +82,10 @@ export function NoteEditor({ node, onClose, onSave }: NoteEditorProps) {
                   boxShadow: `0 0 20px ${glowColor}60`,
                 }}
               >
-                <LuSave className="w-4 h-4 mr-2" /> {/* Updated Icon Usage */}
+                <LuSave className="w-4 h-4 mr-2" /> {/* Save Icon */}
                 Save
               </Button>
-              <Button
+              <Button // X button
                 onClick={handleSave}
                 variant="ghost"
                 size="icon"

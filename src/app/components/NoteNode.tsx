@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'motion/react';
-import { LuFileText, LuTrash2 } from 'react-icons/lu'; // Updated import
+import { LuFileText, LuTrash2 } from 'react-icons/lu';
 
 export interface NoteNodeData {
   id: string;
@@ -21,6 +21,7 @@ interface NoteNodeProps {
   onConnectionEnd: (id: string) => void;
   scale: number;
   isConnecting?: boolean;
+  isLinkMode: boolean;
 }
 
 export function NoteNode({ 
@@ -32,7 +33,8 @@ export function NoteNode({
   onConnectionStart,
   onConnectionEnd,
   scale,
-  isConnecting = false
+  isConnecting = false,
+  isLinkMode = false
 }: NoteNodeProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -51,58 +53,6 @@ export function NoteNode({
     '#84cc16', // lime
   ];
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('.no-drag')) {
-      return;
-    }
-
-    // Right click for connection
-    if (e.button === 2) {
-      e.preventDefault();
-      onConnectionStart(node.id);
-      return;
-    }
-    
-    clickTimeRef.current = Date.now();
-    setIsDragging(true);
-    dragRef.current = {
-      startX: e.clientX,
-      startY: e.clientY,
-      nodeX: node.x,
-      nodeY: node.y,
-    };
-  };
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!isDragging || !dragRef.current) return;
-
-    const deltaX = (e.clientX - dragRef.current.startX) / scale;
-    const deltaY = (e.clientY - dragRef.current.startY) / scale;
-
-    onPositionChange(
-      node.id,
-      dragRef.current.nodeX + deltaX,
-      dragRef.current.nodeY + deltaY
-    );
-  };
-
-  const handleMouseUp = () => {
-    const clickDuration = Date.now() - clickTimeRef.current;
-    
-    // If it was a quick click (not a drag), open the note
-    if (clickDuration < 200 && dragRef.current) {
-      const deltaX = Math.abs(dragRef.current.nodeX - node.x);
-      const deltaY = Math.abs(dragRef.current.nodeY - node.y);
-      
-      if (deltaX < 5 && deltaY < 5) {
-        onClick(node.id);
-      }
-    }
-    
-    setIsDragging(false);
-    dragRef.current = null;
-  };
-
   const handleMouseEnter = () => {
     setIsHovered(true);
     if (isConnecting) {
@@ -114,21 +64,85 @@ export function NoteNode({
     e.preventDefault();
   };
 
+  // Consolidate Mouse and Touch Start
+  const handleInteractionStart = (e: React.MouseEvent | React.TouchEvent) => {
+    if ((e.target as HTMLElement).closest('.no-drag')) return;
+
+    // Prevent dragging the canvas when interacting with the node
+    e.stopPropagation();
+
+    const isRightClick = 'button' in e && e.button === 2;
+    
+    // If we are in link mode OR using right-click, start the wire
+    if (isRightClick || isLinkMode) {
+      if (e.cancelable) e.preventDefault();
+      onConnectionStart(node.id);
+      return;
+    }
+    
+    // Otherwise, prepare to drag the node
+    clickTimeRef.current = Date.now();
+    setIsDragging(true);
+
+    const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
+
+    dragRef.current = {
+      startX: clientX,
+      startY: clientY,
+      nodeX: node.x,
+      nodeY: node.y,
+    };
+  };
+
+  const handleDragMove = useCallback((clientX: number, clientY: number) => {
+    if (!isDragging || !dragRef.current) return;
+    const deltaX = (clientX - dragRef.current.startX) / scale;
+    const deltaY = (clientY - dragRef.current.startY) / scale;
+    onPositionChange(
+      node.id,
+      dragRef.current.nodeX + deltaX,
+      dragRef.current.nodeY + deltaY
+    );
+  }, [isDragging, onPositionChange, node.id, scale]);
+
+  const handleInteractionEnd = useCallback(() => {
+    const clickDuration = Date.now() - clickTimeRef.current;
+    
+    if (clickDuration < 200 && dragRef.current) {
+      const deltaX = Math.abs(dragRef.current.nodeX - node.x);
+      const deltaY = Math.abs(dragRef.current.nodeY - node.y);
+      if (deltaX < 5 && deltaY < 5) onClick(node.id);
+    }
+    
+    setIsDragging(false);
+    dragRef.current = null;
+  }, [node, onClick]);
+
   useEffect(() => {
+    const onMouseMove = (e: MouseEvent) => handleDragMove(e.clientX, e.clientY);
+    const onTouchMove = (e: TouchEvent) => handleDragMove(e.touches[0].clientX, e.touches[0].clientY);
+
     if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', handleInteractionEnd);
+      window.addEventListener('touchmove', onTouchMove, { passive: false });
+      window.addEventListener('touchend', handleInteractionEnd);
+      
       return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', handleInteractionEnd);
+        window.removeEventListener('touchmove', onTouchMove);
+        window.removeEventListener('touchend', handleInteractionEnd);
       };
     }
-  }, [isDragging]);
+  }, [isDragging, handleDragMove, handleInteractionEnd]);
 
   const glowColor = node.color || '#3b82f6';
 
   return (
     <motion.div
+      data-node-id={node.id}
       style={{
         position: 'absolute',
         left: node.x,
@@ -138,7 +152,8 @@ export function NoteNode({
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 0.2 }}
-      onMouseDown={handleMouseDown}
+      onMouseDown={handleInteractionStart}
+      onTouchStart={handleInteractionStart}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setIsHovered(false)}
       onContextMenu={handleContextMenu}

@@ -69,15 +69,36 @@ export default function App() {
   const [nodes, setNodes] = useState<NoteNodeData[]>(initialNodes);
   const [connections, setConnections] = useState<Connection[]>(initialConnections);
 
+  const [scale, setScale] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+
+  const [isLinkMode, setIsLinkMode] = useState(false);
+
+  const handleFitToScreen = () => {
+    setScale(1);
+    setPan({ x: 0, y: 0 });
+  };  
+
   return (
     <div className="h-screen w-screen flex flex-col bg-gray-950 overflow-hidden">
-      <Toolbar />
+      <Toolbar 
+        scale={scale} 
+        onScaleChange={setScale} 
+        onFitToScreen={handleFitToScreen}
+        isLinkMode={isLinkMode}
+        onLinkModeChange={setIsLinkMode}
+      />
       <div className="flex-1 relative">
         <InfiniteCanvas
           nodes={nodes}
           connections={connections}
           onNodesChange={setNodes}
           onConnectionsChange={setConnections}
+          scale={scale}
+          onScaleChange={setScale}
+          pan={pan}
+          onPanChange={setPan}
+          isLinkMode={isLinkMode}
         />
       </div>
     </div>

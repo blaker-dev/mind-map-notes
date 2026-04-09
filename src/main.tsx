@@ -12,9 +12,8 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
-const updateSW = registerSW({
+registerSW({
   onNeedRefresh() {
-    // Optional: You can show a toast notification here telling the user an update is available
     console.log('New content available, please refresh.');
   },
   onOfflineReady() {

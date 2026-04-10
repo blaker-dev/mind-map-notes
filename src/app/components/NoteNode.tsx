@@ -7,7 +7,7 @@ export interface Stroke {
   points: { x: number; y: number }[];
   color: string;
   width: number;
-  isEraser?: boolean; // Added eraser flag
+  isEraser?: boolean; 
 }
 
 export interface NoteNodeData {

@@ -301,7 +301,7 @@ export function InfiniteCanvas({
 
   return (
     <div
-      className="relative w-full h-full overflow-hidden bg-gray-950 touch-none"
+      className="canvas-container"
       onMouseMove={handleCanvasMouseMove}
       onMouseUp={handleCanvasMouseUp}
       onTouchStart={handleTouchStart}
@@ -310,7 +310,7 @@ export function InfiniteCanvas({
     >
       {/* Grid Background */}
       <div
-        className="absolute inset-0"
+        className="canvas-grid"
         style={{
           backgroundImage: `
             linear-gradient(to right, #1f2937 1px, transparent 1px),
@@ -324,7 +324,7 @@ export function InfiniteCanvas({
       {/* Canvas */}
       <div
         ref={canvasRef}
-        className="absolute inset-0"
+        className="canvas-viewport"
         style={{
           cursor: isPanning ? "grabbing" : "grab",
         }}
@@ -423,15 +423,8 @@ export function InfiniteCanvas({
 
       {/* Floating Add Button */}
       <div className="absolute bottom-8 right-8">
-        <Button
-          size="lg"
-          className="rounded-full shadow-lg h-14 w-14 bg-blue-600 hover:bg-blue-700 border-2 border-blue-500 transition-all"
-          onClick={handleAddNode}
-          style={{
-            boxShadow: "0 0 20px #3b82f660, 0 0 40px #3b82f620",
-          }}
-        >
-          <LuPlus className="w-6 h-6" /> {/* Updated Icon Usage */}
+        <Button size="lg" className="floating-add-button" onClick={handleAddNode}>
+          <LuPlus className="w-6 h-6" />
         </Button>
       </div>
 

@@ -1,7 +1,6 @@
 @import "tailwindcss";
-
-/* If you were using that animation plugin from your error log, add it here too: */
 @import "tw-animate-css";
+@import "./components.css";
 
 /* Tailwind will automatically scan your source files */
 @tailwind base;
